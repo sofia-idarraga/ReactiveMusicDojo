@@ -2,6 +2,7 @@ package ec.com.reactive.music.web;
 
 import ec.com.reactive.music.domain.dto.PlaylistDTO;
 import ec.com.reactive.music.service.IPlaylistService;
+import ec.com.reactive.music.service.ISongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,6 +20,9 @@ public class PlaylistResource {
 
     @Autowired
     private IPlaylistService playlistService;
+
+    @Autowired
+    private ISongService songService;
 
     @GetMapping("/findAllPlaylists")
     private Mono<ResponseEntity<Flux<PlaylistDTO>>> findAllPlaylists(){
@@ -44,5 +48,16 @@ public class PlaylistResource {
     @DeleteMapping("/deletePlaylist/{id}")
     private Mono<ResponseEntity<String>> deletePlaylist(@PathVariable String id){
         return playlistService.deletePlaylist(id);
+    }
+
+    @PostMapping("/addSongToPlaylist/{idSong}/{idPlaylist}")
+    private Mono<ResponseEntity<PlaylistDTO>> addSong(@PathVariable String idPlaylist,
+                                                      @PathVariable String idSong,
+                                                      @RequestBody PlaylistDTO playlistDTO){
+        return songService.findSongById(idSong)
+                .flatMap(songDTOResponseEntity -> songDTOResponseEntity.getStatusCode().is4xxClientError()?
+                playlistService.addSong(idPlaylist,"Does not exist",playlistDTO)
+                        :playlistService.addSong(idPlaylist,idSong,playlistDTO));
+                //playlistService.addSong(idPlaylist,idSong,playlistDTO);
     }
 }

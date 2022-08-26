@@ -18,6 +18,8 @@ public interface IPlaylistService {
 
     Mono<ResponseEntity<String>> deletePlaylist (String idPlaylist);
 
+    Mono<ResponseEntity<PlaylistDTO>> addSong(String idPlaylist, String idSong, PlaylistDTO playlistDTO);
+
     PlaylistDTO entityToDTO(Playlist playlist);
 
     Playlist dtoToEntity(PlaylistDTO playlistDTO);

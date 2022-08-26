@@ -2,7 +2,9 @@ package ec.com.reactive.music.service.impl;
 
 import ec.com.reactive.music.domain.dto.PlaylistDTO;
 import ec.com.reactive.music.domain.entities.Playlist;
+import ec.com.reactive.music.domain.entities.Song;
 import ec.com.reactive.music.repository.IPlaylistRepository;
+import ec.com.reactive.music.repository.ISongRepository;
 import ec.com.reactive.music.service.IPlaylistService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -13,12 +15,18 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class PlaylistServiceImpl implements IPlaylistService {
 
     @Autowired
     private IPlaylistRepository iPlaylistRepository;
+
+   @Autowired
+    private final ISongRepository iSongRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -80,6 +88,28 @@ public class PlaylistServiceImpl implements IPlaylistService {
                         .map(monoVoid -> new ResponseEntity<>(idPlaylist,HttpStatus.ACCEPTED)))
                 .thenReturn(new ResponseEntity<>(idPlaylist,HttpStatus.ACCEPTED))
                 .onErrorResume(throwable -> Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND)));
+    }
+
+    @Override
+    public Mono<ResponseEntity<PlaylistDTO>> addSong(String idPlaylist, String idSong, PlaylistDTO playlistDTO) {
+
+        return idSong.equals("Does not exist") ? Mono.just(new ResponseEntity<>(playlistDTO, HttpStatus.NOT_ACCEPTABLE))
+                : this.iPlaylistRepository
+                .findById(idPlaylist)
+                .switchIfEmpty(Mono.error(new Throwable(HttpStatus.NOT_FOUND.toString())))
+                .map(playlist -> {
+                    this.iSongRepository.findById(idSong).map(song -> {
+                        var playlistToSave = dtoToEntity(playlistDTO);
+                        playlistToSave.getSongs().add(song);
+                        playlistToSave.setDuration(playlist.getDuration().plusHours(song.getDuration().getHour())
+                                .plusMinutes(song.getDuration().getMinute())
+                                .plusSeconds(song.getDuration().getSecond()));
+
+                        return playlistToSave;
+                    });
+                        return entityToDTO(playlist);})
+                .map(playlistDTO1 ->  this.updatePlaylist(idPlaylist,playlistDTO1))
+                .flatMap(responseEntityMono -> responseEntityMono);
     }
 
     @Override
