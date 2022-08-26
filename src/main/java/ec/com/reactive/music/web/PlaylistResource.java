@@ -34,13 +34,13 @@ public class PlaylistResource {
     }
 
     @PutMapping("/updatePlaylist/{id}")
-    private  Mono<ResponseEntity<PlaylistDTO>> updatePlaylist(@PathVariable String idPlaylist,
+    private  Mono<ResponseEntity<PlaylistDTO>> updatePlaylist(@PathVariable String id,
                                                               @RequestBody PlaylistDTO playlistDTO){
-        return playlistService.updatePlaylist(idPlaylist,playlistDTO);
+        return playlistService.updatePlaylist(id,playlistDTO);
     }
 
     @DeleteMapping("/deletePlaylist/{id}")
-    private Mono<ResponseEntity<String>> deletePlaylist(@PathVariable String idPlaylist){
-        return playlistService.deletePlaylist(idPlaylist);
+    private Mono<ResponseEntity<String>> deletePlaylist(@PathVariable String id){
+        return playlistService.deletePlaylist(id);
     }
 }
