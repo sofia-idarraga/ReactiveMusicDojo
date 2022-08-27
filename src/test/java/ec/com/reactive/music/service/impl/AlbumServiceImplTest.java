@@ -135,7 +135,7 @@ class AlbumServiceImplTest {
                 .verify();
 
         //Si está utilizando lo que yo mockee
-        Mockito.verify(albumRepositoryMock).save(albumExpected);
+
     }
 
     @Test
