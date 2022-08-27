@@ -97,17 +97,19 @@ public class PlaylistServiceImpl implements IPlaylistService {
                 : this.iPlaylistRepository
                 .findById(idPlaylist)
                 .switchIfEmpty(Mono.error(new Throwable(HttpStatus.NOT_FOUND.toString())))
-                .map(playlist -> {
-                    this.iSongRepository.findById(idSong).map(song -> {
+                .flatMap(playlist -> {
+                 return this.iSongRepository.findById(idSong).map(song -> {
                         var playlistToSave = dtoToEntity(playlistDTO);
-                        playlistToSave.getSongs().add(song);
+                        ArrayList<Song> songs = playlist.getSongs();
+                        songs.add(song);
+                        playlistToSave.setSongs(songs);
                         playlistToSave.setDuration(playlist.getDuration().plusHours(song.getDuration().getHour())
                                 .plusMinutes(song.getDuration().getMinute())
                                 .plusSeconds(song.getDuration().getSecond()));
 
                         return playlistToSave;
-                    });
-                        return entityToDTO(playlist);})
+                    })
+                            .map(playlist1 -> this.entityToDTO(playlist1));})
                 .map(playlistDTO1 ->  this.updatePlaylist(idPlaylist,playlistDTO1))
                 .flatMap(responseEntityMono -> responseEntityMono);
     }
